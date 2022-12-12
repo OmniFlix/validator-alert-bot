@@ -1,0 +1,42 @@
+{
+  "cosmos": {
+    "rpc": "",
+    "rest": "",
+    "prefix": ""
+  },
+  "osmosis": {
+    "rpc": "",
+    "api": "",
+    "prefix": ""
+  },
+  "juno": {
+    "rpc": "",
+    "api": "",
+    "prefix": ""
+  },
+  "stargaze": {
+    "rpc": "",
+    "api": "",
+    "prefix": ""
+  },
+  "sentinel": {
+    "rpc": "",
+    "api": "",
+    "prefix": ""
+  },
+  "comdex": {
+    "rpc": "",
+    "api": "",
+    "prefix": ""
+  },
+  "ki": {
+    "rpc": "",
+    "api": "",
+    "prefix": ""
+  },
+  "agoric": {
+    "rpc": "",
+    "api": "",
+    "prefix": ""
+  }
+}
