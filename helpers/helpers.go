@@ -138,7 +138,6 @@ func SendReplyMessage(bot *tgbotapi.BotAPI, update tgbotapi.Update, text string,
 func CheckMissedBlocks(restApi, validatorConsAddress string) (int64, error) {
 	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 	url := restApi + fmt.Sprintf("/cosmos/slashing/v1beta1/signing_infos/%s", validatorConsAddress)
-	fmt.Println(url)
 	resp, err := http.Get(url)
 	if err != nil {
 		fmt.Println(err)
@@ -146,7 +145,6 @@ func CheckMissedBlocks(restApi, validatorConsAddress string) (int64, error) {
 	}
 	defer resp.Body.Close()
 	var body MissedBlocksResponse
-	fmt.Println("response Status:", resp.Status)
 	if err := json.NewDecoder(resp.Body).Decode(&body); err != nil {
 		return 0, err
 	}

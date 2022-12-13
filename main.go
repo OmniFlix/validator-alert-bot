@@ -182,14 +182,18 @@ func getPrefix(addr string) string {
 	return ""
 }
 func HandleSubscribers(bot *tgbotapi.BotAPI) {
+	fmt.Println("Checking Missed blocks ...")
 	for user, validators := range subscribers {
 		for _, validator := range validators {
 			prefix := getPrefix(validator)
+			fmt.Println(validator)
 			if len(prefix) > 0 && len(networks[prefix]) > 0 {
 				currentMissedBlocks, err := helpers.CheckMissedBlocks(networks[prefix]["rest"], validator)
 				if err != nil {
 					continue
 				}
+				fmt.Println("Missed Blocks:", currentMissedBlocks)
+				fmt.Printf("\n")
 				previousMissedBlocks, ok := validatorsMissedBlocks[validator]
 				if !ok {
 					continue
@@ -232,8 +236,10 @@ func contains(s []string, str string) bool {
 }
 
 func SubscribersHandleScheduler(bot *tgbotapi.BotAPI) {
-	go HandleSubscribers(bot)
+	HandleSubscribers(bot)
+	time.Sleep(5 * time.Second)
 	s := gocron.NewScheduler()
+	fmt.Println("Starting blocks monitoring scheduler ...")
 	s.Every(60).Seconds().Do(HandleSubscribers, bot)
 	<-s.Start()
 }
