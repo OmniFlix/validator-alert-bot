@@ -12,12 +12,15 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
+	"github.com/btcsuite/btcutil/bech32"
 	"github.com/fatih/color"
 )
 
 var subscribers = make(map[string][]string)
 var validatorsMissedBlocks = make(map[string]int64)
+var networks = make(map[string]map[string]string)
 
 func initBot() {
 	jsonFile, err := os.Open(config.SubscribersFile)
@@ -37,7 +40,16 @@ func initBot() {
 	defer validatorsfile.Close()
 	byteValue2, _ := ioutil.ReadAll(validatorsfile)
 	json.Unmarshal(byteValue2, &validatorsMissedBlocks)
+	networksfile, err := os.Open(config.NetworksFile)
+	if err != nil {
+		fmt.Println(err)
+		panic(err)
+	}
+	defer validatorsfile.Close()
+	byteValue3, _ := ioutil.ReadAll(networksfile)
+	json.Unmarshal(byteValue3, &networks)
 	UpdateValidatorMissedBlocks()
+	time.Sleep(5)
 }
 
 func main() {
@@ -72,7 +84,7 @@ func MainHandler(bot *tgbotapi.BotAPI, update tgbotapi.Update) {
 
 		switch command {
 		case "start":
-			text := "Welcome to terra-alerts bot\n"
+			text := "Welcome to validator-alerts bot\n"
 			helpers.SendMessage(bot, update, text, "html")
 		case "subscribe":
 			HandleSubscribe(bot, update)
@@ -148,36 +160,49 @@ func UpdateValidatorMissedBlocks() {
 		}
 	}
 	for _, address := range addresses {
-		votesCount, err := helpers.CheckMissedBlocks(address)
-		if err != nil {
-			continue
+		prefix := getPrefix(address)
+		if len(prefix) > 0 && len(networks[prefix]) > 0 {
+			missedCount, err := helpers.CheckMissedBlocks(networks[prefix]["rest"], address)
+			if err != nil {
+				continue
+			}
+			validatorsMissedBlocks[address] = missedCount
 		}
-		validatorsMissedBlocks[address] = votesCount
 	}
 	validatorsData, _ := json.MarshalIndent(validatorsMissedBlocks, "", " ")
 	_ = ioutil.WriteFile(config.ValidatorsFile, validatorsData, 0644)
 	fmt.Println("Updated validators missed blocks data")
 }
 
+func getPrefix(addr string) string {
+	parts := strings.Split(addr, "val")
+	if len(parts) > 1 {
+		return parts[0]
+	}
+	return ""
+}
 func HandleSubscribers(bot *tgbotapi.BotAPI) {
 	for user, validators := range subscribers {
 		for _, validator := range validators {
-			currentMissedBlocks, err := helpers.CheckMissedBlocks(validator)
-			if err != nil {
-				continue
-			}
-			previousMissedBlocks, ok := validatorsMissedBlocks[validator]
-			if !ok {
-				continue
-			}
-			if currentMissedBlocks-previousMissedBlocks > 0 {
-				fmt.Println(validator, "missing blocks")
-				text := fmt.Sprintf("**Alert**:\n\n %s is missing blocks MissedBlocksCount **%d -> %d**",
-					validator, previousMissedBlocks, currentMissedBlocks)
-				userId, _ := strconv.ParseInt(user, 10, 64)
-				msg := tgbotapi.NewMessage(userId, text)
-				msg.ParseMode = tgbotapi.ModeMarkdown
-				bot.Send(msg)
+			prefix := getPrefix(validator)
+			if len(prefix) > 0 && len(networks[prefix]) > 0 {
+				currentMissedBlocks, err := helpers.CheckMissedBlocks(networks[prefix]["rest"], validator)
+				if err != nil {
+					continue
+				}
+				previousMissedBlocks, ok := validatorsMissedBlocks[validator]
+				if !ok {
+					continue
+				}
+				if currentMissedBlocks-previousMissedBlocks > config.MissedBlocksLimit {
+					fmt.Println(validator, "missing blocks")
+					text := fmt.Sprintf("**Alert**:\n\n %s is missing blocks MissedBlocksCount **%d -> %d**",
+						validator, previousMissedBlocks, currentMissedBlocks)
+					userId, _ := strconv.ParseInt(user, 10, 64)
+					msg := tgbotapi.NewMessage(userId, text)
+					msg.ParseMode = tgbotapi.ModeMarkdown
+					bot.Send(msg)
+				}
 			}
 		}
 	}
@@ -185,7 +210,12 @@ func HandleSubscribers(bot *tgbotapi.BotAPI) {
 }
 
 func isCorrectValConsAddress(address string) bool {
-	if strings.HasPrefix(address, "cosmosvalcons") && len(address) == 52 {
+	hrp, _, err := bech32.Decode(address)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return false
+	}
+	if strings.Contains(hrp, "valcons") {
 		return true
 	}
 	return false

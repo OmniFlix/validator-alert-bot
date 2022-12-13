@@ -1,42 +1,38 @@
 {
   "cosmos": {
-    "rpc": "",
-    "rest": "",
-    "prefix": ""
+    "rpc": "https://rpc-cosmoshub.omniflix.io",
+    "rest": "https://api-cosmoshub.omniflix.io"
   },
-  "osmosis": {
-    "rpc": "",
-    "api": "",
-    "prefix": ""
+  "osmo": {
+    "rpc": "https://rpc-osmosis.omniflix.io",
+    "rest": "https://api-osmosis.omniflix.io"
   },
   "juno": {
-    "rpc": "",
-    "api": "",
-    "prefix": ""
+    "rpc": "https://rpc-juno.omniflix.io",
+    "rest": "https://api-juno.omniflix.io"
   },
-  "stargaze": {
+  "stars": {
     "rpc": "",
-    "api": "",
-    "prefix": ""
+    "rest": ""
   },
-  "sentinel": {
+  "sent": {
     "rpc": "",
-    "api": "",
-    "prefix": ""
+    "rest": ""
   },
   "comdex": {
     "rpc": "",
-    "api": "",
-    "prefix": ""
+    "rest": ""
   },
   "ki": {
     "rpc": "",
-    "api": "",
-    "prefix": ""
+    "rest": ""
+  },
+  "omniflix": {
+    "rpc": "",
+    "rest": ""
   },
   "agoric": {
     "rpc": "",
-    "api": "",
-    "prefix": ""
+    "rest": ""
   }
 }

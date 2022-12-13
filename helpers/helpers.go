@@ -10,10 +10,6 @@ import (
 	"time"
 )
 
-const (
-	COSMOS_TESTNET_REST_URL = "https://api.theta-testnet.omniflix.co/"
-)
-
 type MissedBlocksResponse struct {
 	ValSigningInfo ValSigningInfo `json:"val_signing_info"`
 }
@@ -139,9 +135,10 @@ func SendReplyMessage(bot *tgbotapi.BotAPI, update tgbotapi.Update, text string,
 	return
 }
 
-func CheckMissedBlocks(validatorConsAddress string) (int64, error) {
+func CheckMissedBlocks(restApi, validatorConsAddress string) (int64, error) {
 	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-	url := COSMOS_TESTNET_REST_URL + fmt.Sprintf("/cosmos/slashing/v1beta1/signing_infos/%s", validatorConsAddress)
+	url := restApi + fmt.Sprintf("/cosmos/slashing/v1beta1/signing_infos/%s", validatorConsAddress)
+	fmt.Println(url)
 	resp, err := http.Get(url)
 	if err != nil {
 		fmt.Println(err)
